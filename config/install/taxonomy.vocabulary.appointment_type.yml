@@ -1,0 +1,9 @@
+uuid: 45d3002e-b443-4bbb-b7bc-2c186e469a11
+langcode: en
+status: true
+dependencies: {  }
+name: 'Appointment Type'
+vid: appointment_type
+description: 'Types of appointments used to match customers with the right adviser.'
+weight: 0
+new_revision: false

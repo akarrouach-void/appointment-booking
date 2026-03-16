@@ -1,0 +1,14 @@
+uuid: 13d85432-f3d2-447a-9344-16f1cb2eaa01
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.adviser
+  module:
+    - user
+id: user_remove_role_action.adviser
+label: 'Remove the Adviser role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: adviser

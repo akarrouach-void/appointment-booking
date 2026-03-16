@@ -1,0 +1,56 @@
+uuid: 5c4ed5a6-414e-4b5d-9e57-6509f0e9d085
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_working_hours
+    - profile.type.adviser
+  module:
+    - office_hours
+id: profile.adviser.field_working_hours
+field_name: field_working_hours
+entity_type: profile
+bundle: adviser
+label: 'Working Hours'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    day: 1
+    all_day: false
+    starthours: 900
+    endhours: 1700
+    comment: ''
+    day_delta: 0
+  -
+    day: 2
+    all_day: false
+    starthours: 900
+    endhours: 1700
+    comment: ''
+    day_delta: 0
+  -
+    day: 3
+    all_day: false
+    starthours: 900
+    endhours: 1700
+    comment: ''
+    day_delta: 0
+  -
+    day: 4
+    all_day: false
+    starthours: 900
+    endhours: 1700
+    comment: ''
+    day_delta: 0
+  -
+    day: 5
+    all_day: false
+    starthours: 900
+    endhours: 1700
+    comment: ''
+    day_delta: 0
+default_value_callback: ''
+settings: {  }
+field_type: office_hours

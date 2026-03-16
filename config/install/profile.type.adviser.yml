@@ -1,0 +1,13 @@
+uuid: 5364e039-9ee4-41d6-9a6b-6b5dfaad302c
+langcode: en
+status: true
+dependencies: {  }
+id: adviser
+label: Adviser
+display_label: ''
+multiple: false
+registration: false
+roles:
+  adviser: adviser
+allow_revisions: false
+new_revision: false

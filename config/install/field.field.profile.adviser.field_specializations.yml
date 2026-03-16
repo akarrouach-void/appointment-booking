@@ -1,0 +1,29 @@
+uuid: ba98e630-e53e-4a46-b0d3-bfbf24248238
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.profile.field_specializations
+    - profile.type.adviser
+    - taxonomy.vocabulary.appointment_type
+id: profile.adviser.field_specializations
+field_name: field_specializations
+entity_type: profile
+bundle: adviser
+label: Specializations
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      appointment_type: appointment_type
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

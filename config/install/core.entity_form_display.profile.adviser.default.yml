@@ -1,0 +1,35 @@
+uuid: f6280cc9-07ba-4fe6-a138-14b879f54b22
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.profile.adviser.field_specializations
+    - field.field.profile.adviser.field_working_hours
+    - profile.type.adviser
+  module:
+    - office_hours
+id: profile.adviser.default
+targetEntityType: profile
+bundle: adviser
+mode: default
+content:
+  field_specializations:
+    type: entity_reference_autocomplete
+    weight: 26
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_working_hours:
+    type: office_hours_exceptions
+    weight: 27
+    region: content
+    settings:
+      collapsed: false
+      collapsed_exceptions: true
+    third_party_settings: {  }
+hidden:
+  is_default: true

@@ -1,0 +1,60 @@
+uuid: b22f9023-eb95-4565-9e92-38b31189a78a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.profile.adviser.field_specializations
+    - field.field.profile.adviser.field_working_hours
+    - profile.type.adviser
+  module:
+    - office_hours
+id: profile.adviser.default
+targetEntityType: profile
+bundle: adviser
+mode: default
+content:
+  field_specializations:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_working_hours:
+    type: office_hours_table
+    label: above
+    settings:
+      day_format: long
+      time_format: G
+      compress: false
+      grouped: false
+      show_empty: false
+      show_closed: all
+      closed_format: Closed
+      all_day_format: 'All day open'
+      separator:
+        days: '<br />'
+        grouped_days: ' - '
+        day_hours: ': '
+        hours_hours: '-'
+        more_hours: ', '
+      current_status:
+        position: ''
+        open_text: 'Currently open!'
+        closed_text: 'Currently closed'
+      exceptions:
+        title: 'Exception hours'
+        replace_exceptions: false
+        restrict_exceptions_to_num_days: 7
+        restrict_seasons_to_num_days: 366
+        date_format: long
+        all_day_format: 'All day open'
+      timezone_field: ''
+      office_hours_first_day: ''
+      schema:
+        enabled: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden: {  }
