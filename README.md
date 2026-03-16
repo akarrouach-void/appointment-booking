@@ -1,61 +1,100 @@
 # Appointment Booking Module
 
-## Overview
-A Drupal 11 module that implements an appointment booking system,
-allowing users to book appointments with advisers at agencies.
+A custom Drupal 11 module for booking appointments with advisers at agencies.
 
 ## Requirements
+
 - Drupal 11
-- Token module
-- Pathauto module
-- Profile module
-- Office Hours module
+- [Profile](https://www.drupal.org/project/profile)
+- [Office Hours](https://www.drupal.org/project/office_hours)
+- [Token](https://www.drupal.org/project/token)
+- [Pathauto](https://www.drupal.org/project/pathauto)
 
 ## Installation
-1. Enable the module: `drush en appointment -y`
-2. Clear cache: `drush cr`
 
-## Configuration
+```bash
+composer require drupal/profile drupal/office_hours drupal/token drupal/pathauto
+drush en appointment -y
+drush cr
+```
 
-### 1. Taxonomy
-Create the `appointment_type` vocabulary with your appointment types.
+---
 
-![Appointment Type](images/appointment_type.png)
+## Taxonomy — Appointment Type
 
-### 2. Adviser Role & Profile
-The module ships with an `Adviser` role and profile type.
-Only users with the Adviser role will have an Adviser profile.
+Created a taxonomy vocabulary called `appointment_type` through the backoffice at `Structure → Taxonomy → Add Vocabulary`. This vocabulary serves two purposes: it categorises appointments by type, and it is used as the specializations field on the Adviser profile to match users with the right adviser during booking.
 
-![Adviser Profile](images/adviser_profile.png)
+The vocabulary ships with the module via `config/install/taxonomy.vocabulary.appointment_type.yml`. Terms are not shipped — they are created by the site administrator.
 
-### 3. Working Hours
-Each adviser has default working hours Monday-Friday 09:00-17:00.
-These can be changed per adviser in their profile.
+![Appointment Type terms](images/appointment_type.png)
 
-![Working Hours](images/working_hours.png)
+---
 
-### 4. Agencies
-Create agencies at `/admin/structure/agency`
+## Adviser Role
 
-### 5. Advisers
-Create adviser accounts at `/admin/people`
-Assign the Adviser role and fill in their profile.
+Created a custom role called `Adviser` at `People → Roles → Add Role`. This role is assigned to users who act as advisers in the system.
 
-## Usage
+The role ships with the module via:
 
-### Booking an Appointment
-Visit `/prendre-un-rendez-vous` and follow the 6 steps:
-1. Pick an agency
-2. Pick an appointment type
-3. Pick an adviser
-4. Pick a date and time
-5. Enter personal information
-6. Confirm
+```
+config/install/user.role.adviser.yml
+config/install/system.action.user_add_role_action.adviser.yml
+config/install/system.action.user_remove_role_action.adviser.yml
+```
 
-### Managing an Appointment
-Visit `/mon-rendez-vous` and enter your phone number.
+---
 
-### Admin Interface
-Visit `/admin/structure/appointment` to manage all appointments.
+## Adviser Profile
 
-## Maintainers
+Installed the [Profile](https://www.drupal.org/project/profile) module and created a profile type called `Adviser` restricted to users with the `Adviser` role. This means only advisers will have this profile — not regular users or admins.
+
+```bash
+composer require drupal/profile
+drush en profile -y
+```
+
+The profile type ships with the module via:
+
+```
+config/install/profile.type.adviser.yml
+config/install/system.action.profile_delete_action.yml
+config/install/system.action.profile_publish_action.yml
+config/install/system.action.profile_unpublish_action.yml
+config/install/views.view.profiles.yml
+```
+
+![Adviser profile type restricted to Adviser role](images/adviser_profile.png)
+
+### Specializations field
+
+An entity reference field pointing to the `appointment_type` taxonomy with unlimited values. An adviser can cover multiple appointment types. When a user books an appointment, the system filters advisers by both agency and specialization to show only the relevant advisers.
+
+### Working Hours field
+
+Powered by the [Office Hours](https://www.drupal.org/project/office_hours) module. Stores the adviser's weekly availability as a recurring pattern — not specific dates. The default value is Monday to Friday, 09:00 to 17:00.
+
+```bash
+composer require drupal/office_hours
+drush en office_hours -y
+```
+
+At booking time, the system reads the adviser's working hours to generate available time slots, then subtracts any already booked appointments for that specific date to show only free slots.
+
+```
+Available slots = Working hours slots − Already booked appointments (status ≠ cancelled)
+```
+
+![Working Hours default configuration](images/working_hours.png)
+
+The field is stored in the database as integers:
+
+```
+profile__field_working_hours
+entity_id | day | starthours | endhours
+----------|-----|------------|----------
+7         |  1  |    900     |   1700    ← Monday
+7         |  2  |    900     |   1700    ← Tuesday
+...
+```
+
+Day numbers follow PHP conventions: 0 = Sunday, 1 = Monday ... 6 = Saturday. Days with no rows are treated as closed.
