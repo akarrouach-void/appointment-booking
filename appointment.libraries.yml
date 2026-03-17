@@ -1,0 +1,8 @@
+booking_wizard:
+  version: 1.x
+  css:
+    theme:
+      css/booking-wizard.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax

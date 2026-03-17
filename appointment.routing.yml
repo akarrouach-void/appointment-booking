@@ -1,3 +1,11 @@
+appointment.booking_form:
+  path: '/prendre-un-rendez-vous'
+  defaults:
+    _form: '\Drupal\appointment\Form\BookingForm'
+    _title: 'Prendre un rendez-vous'
+  requirements:
+    _permission: 'access content'
+
 entity.agency.settings:
   path: 'admin/structure/agency'
   defaults:
