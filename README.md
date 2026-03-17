@@ -122,6 +122,11 @@ Fields:
 - Phone
 - Email
 - Operating hours (`field_operating_hours`)
+- Specializations (`field_specializations`) - Entity reference to appointment_type taxonomy, accepts multiple values
+
+### Specializations field
+
+An entity reference field pointing to the `appointment_type` taxonomy with unlimited values. An agency can offer multiple types/specializations of appointments. This is used in the booking form to show only the relevant appointment types for the selected agency.
 
 ---
 

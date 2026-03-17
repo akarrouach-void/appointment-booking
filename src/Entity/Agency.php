@@ -193,7 +193,33 @@ class Agency extends ContentEntityBase implements AgencyInterface {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
-      
+    // Specializations - the types of appointments this agency handles.
+    $fields['field_specializations'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(new TranslatableMarkup('Specializations'))
+      ->setDescription(new TranslatableMarkup('The types of appointments/services this agency offers. An agency can have multiple specializations.'))
+      ->setCardinality(-1) // Unlimited values
+      ->setSetting('target_type', 'taxonomy_term')
+      ->setSetting('handler', 'default:taxonomy_term')
+      ->setSetting('handler_settings', [
+        'target_bundles' => [
+          'appointment_type' => 'appointment_type',
+        ],
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'options_buttons',
+        'weight' => 3,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'entity_reference_label',
+        'weight' => 3,
+        'settings' => [
+          'link' => TRUE,
+        ],
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     return $fields;
   }
 
