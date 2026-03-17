@@ -1,5 +1,6 @@
 administer agency:
   title: 'Administer agencies'
+  description: 'Allows users to administer agencies, including creating, editing, and deleting agencies.'
   restrict access: true
 view agency:
   title: 'View agency'
@@ -12,4 +13,13 @@ create agency:
 
 administer appointment:
   title: 'Administer appointments'
+  description: 'Allows users to administer appointments, including creating, editing, and deleting appointments.'
   restrict access: true
+view appointment:
+  title: 'View appointment'
+edit appointment:
+  title: 'Edit appointment'
+delete appointment:
+  title: 'Delete appointment'
+create appointment:
+  title: 'Create appointment'

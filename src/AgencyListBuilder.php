@@ -16,11 +16,11 @@ final class AgencyListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildHeader(): array {
-    $header['id'] = $this->t('ID');
-    $header['label'] = $this->t('Label');
+    $header['label'] = $this->t('Name');
+    $header['email'] = $this->t('Email');
+    $header['phone'] = $this->t('Phone');
+    $header['address'] = $this->t('Address');
     $header['status'] = $this->t('Status');
-    $header['created'] = $this->t('Created');
-    $header['changed'] = $this->t('Updated');
     return $header + parent::buildHeader();
   }
 
@@ -29,11 +29,11 @@ final class AgencyListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity): array {
     /** @var \Drupal\appointment\Entity\AgencyInterface $entity */
-    $row['id'] = $entity->id();
     $row['label'] = $entity->toLink();
+    $row['email'] = $entity->get('email')->value;
+    $row['phone'] = $entity->get('phone')->value;
+    $row['address'] = $entity->get('address')->value;
     $row['status'] = $entity->get('status')->value ? $this->t('Enabled') : $this->t('Disabled');
-    $row['created']['data'] = $entity->get('created')->view(['label' => 'hidden']);
-    $row['changed']['data'] = $entity->get('changed')->view(['label' => 'hidden']);
     return $row + parent::buildRow($entity);
   }
 

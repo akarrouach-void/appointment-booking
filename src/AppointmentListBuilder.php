@@ -16,11 +16,12 @@ final class AppointmentListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildHeader(): array {
-    $header['id'] = $this->t('ID');
-    $header['label'] = $this->t('Label');
+    $header['label'] = $this->t('Reference');
+    $header['customer_name'] = $this->t('Customer');
+    $header['appointment_date'] = $this->t('Date');
+    $header['appointment_agency'] = $this->t('Agency');
+    $header['appointment_adviser'] = $this->t('Adviser');
     $header['status'] = $this->t('Status');
-    $header['created'] = $this->t('Created');
-    $header['changed'] = $this->t('Updated');
     return $header + parent::buildHeader();
   }
 
@@ -29,11 +30,14 @@ final class AppointmentListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity): array {
     /** @var \Drupal\appointment\Entity\AppointmentInterface $entity */
-    $row['id'] = $entity->id();
     $row['label'] = $entity->toLink();
-    $row['status'] = $entity->get('status')->value ? $this->t('Enabled') : $this->t('Disabled');
-    $row['created']['data'] = $entity->get('created')->view(['label' => 'hidden']);
-    $row['changed']['data'] = $entity->get('changed')->view(['label' => 'hidden']);
+    $row['customer_name'] = $entity->get('customer_name')->value;
+    $row['appointment_date']['data'] = $entity->get('appointment_date')->view(['label' => 'hidden']);
+    $agency = $entity->get('appointment_agency')->entity;
+    $row['appointment_agency'] = $agency ? $agency->label() : '—';
+    $adviser = $entity->get('appointment_adviser')->entity;
+    $row['appointment_adviser'] = $adviser ? $adviser->getDisplayName() : '—';
+    $row['status'] = $entity->get('status')->value ? $this->t('Confirmed') : $this->t('Cancelled');
     return $row + parent::buildRow($entity);
   }
 

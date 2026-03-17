@@ -13,6 +13,7 @@ use Drupal\Core\Entity\Form\DeleteMultipleForm;
 use Drupal\Core\Entity\Routing\AdminHtmlRouteProvider;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\appointment\AppointmentAccessControlHandler;
 use Drupal\appointment\Entity\AppointmentInterface;
 use Drupal\appointment\AppointmentListBuilder;
 use Drupal\appointment\Form\AppointmentForm;
@@ -36,6 +37,7 @@ use Drupal\views\EntityViewsData;
   handlers: [
     'list_builder' => AppointmentListBuilder::class,
     'views_data' => EntityViewsData::class,
+    'access' => AppointmentAccessControlHandler::class,
     'form' => [
       'add' => AppointmentForm::class,
       'edit' => AppointmentForm::class,
