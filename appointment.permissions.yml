@@ -1,0 +1,15 @@
+administer agency:
+  title: 'Administer agencies'
+  restrict access: true
+view agency:
+  title: 'View agency'
+edit agency:
+  title: 'Edit agency'
+delete agency:
+  title: 'Delete agency'
+create agency:
+  title: 'Create agency'
+
+administer appointment:
+  title: 'Administer appointments'
+  restrict access: true

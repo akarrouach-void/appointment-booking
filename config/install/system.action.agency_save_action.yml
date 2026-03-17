@@ -1,0 +1,13 @@
+uuid: 143c9f70-9f41-45fa-868d-68e17cc8ae03
+langcode: en
+status: true
+dependencies:
+  module:
+    - appointment
+_core:
+  default_config_hash: mPraxoZhOml85veU0rCksXhLWDCVy_EakwMAf15vc5I
+id: agency_save_action
+label: 'Save agencies'
+type: agency
+plugin: 'entity:save_action:agency'
+configuration: {  }

@@ -1,0 +1,13 @@
+uuid: 5495094f-ccea-4b85-a7ba-bc786dd76eda
+langcode: en
+status: true
+dependencies:
+  module:
+    - appointment
+_core:
+  default_config_hash: O5q-nAKHcNGrRtE-D_v6wWkmd9A5Wi0UgHyCrli4ylI
+id: agency_delete_action
+label: 'Delete agencies'
+type: agency
+plugin: 'entity:delete_action:agency'
+configuration: {  }

@@ -1,0 +1,56 @@
+uuid: c6b04ad3-24ad-4d36-86a1-1ea3cfde15b9
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.agency.field_operating_hours
+  module:
+    - appointment
+    - office_hours
+id: agency.agency.field_operating_hours
+field_name: field_operating_hours
+entity_type: agency
+bundle: agency
+label: 'Operating hours'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    day: 1
+    all_day: false
+    starthours: 900
+    endhours: 1800
+    comment: ''
+    day_delta: 0
+  -
+    day: 2
+    all_day: false
+    starthours: 900
+    endhours: 1800
+    comment: ''
+    day_delta: 0
+  -
+    day: 3
+    all_day: false
+    starthours: 900
+    endhours: 1800
+    comment: ''
+    day_delta: 0
+  -
+    day: 4
+    all_day: false
+    starthours: 900
+    endhours: 1800
+    comment: ''
+    day_delta: 0
+  -
+    day: 5
+    all_day: false
+    starthours: 900
+    endhours: 1800
+    comment: ''
+    day_delta: 0
+default_value_callback: ''
+settings: {  }
+field_type: office_hours

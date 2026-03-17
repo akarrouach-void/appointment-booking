@@ -1,0 +1,5 @@
+name: "Appointment"
+type: module
+description: "Provides booking and appointment scheduling functionality."
+package: "Custom"
+core_version_requirement: ^10 || ^11

@@ -1,0 +1,15 @@
+entity.agency.settings:
+  path: 'admin/structure/agency'
+  defaults:
+    _form: '\Drupal\appointment\Form\AgencySettingsForm'
+    _title: 'Agency'
+  requirements:
+    _permission: 'administer agency'
+
+entity.appointment.settings:
+  path: 'admin/structure/appointment'
+  defaults:
+    _form: '\Drupal\appointment\Form\AppointmentSettingsForm'
+    _title: 'Appointment'
+  requirements:
+    _permission: 'administer appointment'

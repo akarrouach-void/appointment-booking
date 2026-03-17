@@ -1,0 +1,20 @@
+uuid: 77f058a3-29cf-44f9-8f1b-5de525813b2a
+langcode: en
+status: true
+dependencies:
+  module:
+    - appointment
+    - profile
+id: profile.field_agency
+field_name: field_agency
+entity_type: profile
+type: entity_reference
+settings:
+  target_type: agency
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
