@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Provides an appointment entity type.
  */
 
-use Drupal\appointment\AppointmentInterface;
+use Drupal\appointment\Entity\AppointmentInterface;
 use Drupal\Core\Render\Element;
 
 /**

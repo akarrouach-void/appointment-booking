@@ -98,3 +98,72 @@ entity_id | day | starthours | endhours
 ```
 
 Day numbers follow PHP conventions: 0 = Sunday, 1 = Monday ... 6 = Saturday. Days with no rows are treated as closed.
+
+---
+
+## Agency Entity
+
+Created a custom content entity called `Agency` with full CRUD pages.
+
+Routes:
+
+- `/admin/content/agency`
+- `/agency/add`
+- `/agency/{agency}`
+- `/agency/{agency}/edit`
+- `/agency/{agency}/delete`
+
+Fields:
+
+- Label
+- Status
+- Description
+- Address
+- Phone
+- Email
+- Operating hours (`field_operating_hours`)
+
+---
+
+## Appointment Entity
+
+Created a custom content entity called `Appointment` with full CRUD pages.
+
+Routes:
+
+- `/admin/content/appointment`
+- `/rendez-vous/add`
+- `/rendez-vous/{appointment}`
+- `/rendez-vous/{appointment}/edit`
+- `/rendez-vous/{appointment}/delete`
+
+Fields:
+
+- Label
+- Status
+- Description
+- Appointment date and time
+- Agency reference
+- Adviser reference
+- Appointment type reference
+- Customer name
+- Customer email
+- Customer phone
+- Appointment status (pending, confirmed, cancelled)
+- Reference code
+- Notes
+
+Reference code is auto-generated in this format:
+
+`RDV-YYYY-DDMMHHSS-XXXX`
+
+---
+
+## Update and Refresh
+
+```bash
+drush updb -y
+drush cr
+```
+
+The module includes `appointment_update_9001()` to install missing entity tables if needed.

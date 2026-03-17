@@ -28,7 +28,7 @@ final class AppointmentListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity): array {
-    /** @var \Drupal\appointment\AppointmentInterface $entity */
+    /** @var \Drupal\appointment\Entity\AppointmentInterface $entity */
     $row['id'] = $entity->id();
     $row['label'] = $entity->toLink();
     $row['status'] = $entity->get('status')->value ? $this->t('Enabled') : $this->t('Disabled');

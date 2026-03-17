@@ -13,7 +13,7 @@ use Drupal\Core\Entity\Form\DeleteMultipleForm;
 use Drupal\Core\Entity\Routing\AdminHtmlRouteProvider;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\appointment\AppointmentInterface;
+use Drupal\appointment\Entity\AppointmentInterface;
 use Drupal\appointment\AppointmentListBuilder;
 use Drupal\appointment\Form\AppointmentForm;
 use Drupal\views\EntityViewsData;

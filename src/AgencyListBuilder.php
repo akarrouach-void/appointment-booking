@@ -28,7 +28,7 @@ final class AgencyListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity): array {
-    /** @var \Drupal\appointment\AgencyInterface $entity */
+    /** @var \Drupal\appointment\Entity\AgencyInterface $entity */
     $row['id'] = $entity->id();
     $row['label'] = $entity->toLink();
     $row['status'] = $entity->get('status')->value ? $this->t('Enabled') : $this->t('Disabled');

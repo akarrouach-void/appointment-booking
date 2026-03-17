@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Update hooks for the Appointment module.
+ */
+
+/**
+ * Installs missing content-entity schemas for appointment module entities.
+ */
+function appointment_update_9001(): ?string {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  $schema = \Drupal::database()->schema();
+
+  $installed = [];
+
+  foreach (['agency', 'appointment'] as $entity_type_id) {
+    if (!$entity_type_manager->hasDefinition($entity_type_id)) {
+      continue;
+    }
+
+    $entity_type = $entity_type_manager->getDefinition($entity_type_id);
+    $base_table = $entity_type->getBaseTable();
+
+    if ($base_table && !$schema->tableExists($base_table)) {
+      $entity_definition_update_manager->installEntityType($entity_type);
+      $installed[] = $entity_type_id;
+    }
+  }
+
+  if ($installed) {
+    return 'Installed missing entity schemas: ' . implode(', ', $installed) . '.';
+  }
+
+  return NULL;
+}

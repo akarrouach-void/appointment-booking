@@ -14,7 +14,7 @@ use Drupal\Core\Entity\Routing\AdminHtmlRouteProvider;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\appointment\AgencyAccessControlHandler;
-use Drupal\appointment\AgencyInterface;
+use Drupal\appointment\Entity\AgencyInterface;
 use Drupal\appointment\AgencyListBuilder;
 use Drupal\appointment\Form\AgencyForm;
 use Drupal\views\EntityViewsData;
