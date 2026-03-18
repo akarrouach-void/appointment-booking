@@ -14,9 +14,9 @@ use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Public multi-step booking form.
+ * Public multi-step appointment modify form.
  */
-final class BookingForm extends FormBase {
+final class AppointmentModifyForm extends FormBase {
 
   private const TOTAL_STEPS = 6;
   private const EDIT_STORE = 'appointment_management';
@@ -59,14 +59,14 @@ final class BookingForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId(): string {
-    return 'appointment_booking_form';
+    return 'appointment_modify_form';
   }
 
   /**
    * Returns TRUE when running in edit mode.
    */
   protected function isEditMode(): bool {
-    return FALSE;
+    return TRUE;
   }
 
   /**

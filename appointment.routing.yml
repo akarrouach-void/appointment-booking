@@ -6,6 +6,38 @@ appointment.booking_form:
   requirements:
     _permission: 'access content'
 
+appointment.manage_lookup:
+  path: '/gerer-rendez-vous'
+  defaults:
+    _form: '\Drupal\appointment\Form\AppointmentLookupForm'
+    _title: 'Gerer mon rendez-vous'
+  requirements:
+    _permission: 'access content'
+
+appointment.manage_actions:
+  path: '/gerer-rendez-vous/actions'
+  defaults:
+    _form: '\Drupal\appointment\Form\AppointmentManageActionsForm'
+    _title: 'Mon rendez-vous'
+  requirements:
+    _permission: 'access content'
+
+appointment.manage_modify:
+  path: '/gerer-rendez-vous/modifier'
+  defaults:
+    _form: '\Drupal\appointment\Form\AppointmentModifyForm'
+    _title: 'Modifier rendez-vous'
+  requirements:
+    _permission: 'access content'
+
+appointment.manage_cancel:
+  path: '/gerer-rendez-vous/supprimer'
+  defaults:
+    _form: '\Drupal\appointment\Form\AppointmentCancelForm'
+    _title: 'Supprimer rendez-vous'
+  requirements:
+    _permission: 'access content'
+
 entity.agency.settings:
   path: 'admin/structure/agency'
   defaults:

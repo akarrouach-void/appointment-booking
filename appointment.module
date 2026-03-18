@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 
 use Drupal\appointment\Entity\AppointmentInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Render\Element;
 
 /**
@@ -69,4 +70,71 @@ function appointment_appointment_presave(AppointmentInterface $appointment) {
     
     $appointment->set('reference', $reference);
   }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function appointment_mail($key, &$message, $params): void {
+  $appointment = $params['appointment'] ?? NULL;
+  if (!$appointment instanceof AppointmentInterface) {
+    return;
+  }
+
+  $translator = \Drupal::translation();
+
+  $reference = (string) ($params['reference'] ?? $appointment->get('reference')->value ?? '');
+  $date_label = (string) ($params['date_label'] ?? appointment_format_date_label($appointment));
+
+  $agency = $appointment->get('appointment_agency')->entity;
+  $adviser = $appointment->get('appointment_adviser')->entity;
+  $type = $appointment->get('appointment_type')->entity;
+
+  $agency_label = $agency ? $agency->label() : '-';
+  $adviser_label = $adviser ? $adviser->label() : '-';
+  $type_label = $type ? $type->label() : '-';
+
+  switch ($key) {
+    case 'created':
+      $message['subject'] = $translator->translate('Your appointment @reference has been created', ['@reference' => $reference]);
+      $message['body'][] = $translator->translate('Your appointment has been created successfully. Keep your reference to modify or cancel it later.');
+      break;
+
+    case 'modified':
+      $message['subject'] = $translator->translate('Your appointment @reference has been modified', ['@reference' => $reference]);
+      $message['body'][] = $translator->translate('Your appointment has been updated successfully.');
+      break;
+
+    case 'cancelled':
+      $message['subject'] = $translator->translate('Your appointment @reference has been cancelled', ['@reference' => $reference]);
+      $message['body'][] = $translator->translate('Your appointment has been cancelled successfully.');
+      break;
+
+    default:
+      return;
+  }
+
+  $message['body'][] = '';
+  $message['body'][] = $translator->translate('Reference: @reference', ['@reference' => $reference]);
+  $message['body'][] = $translator->translate('Date: @date', ['@date' => $date_label]);
+  $message['body'][] = $translator->translate('Agency: @agency', ['@agency' => $agency_label]);
+  $message['body'][] = $translator->translate('Appointment type: @type', ['@type' => $type_label]);
+  $message['body'][] = $translator->translate('Adviser: @adviser', ['@adviser' => $adviser_label]);
+}
+
+/**
+ * Formats appointment date for email content.
+ */
+function appointment_format_date_label(AppointmentInterface $appointment): string {
+  $value = (string) ($appointment->get('appointment_date')->value ?? '');
+  if ($value === '') {
+    return '-';
+  }
+
+  $date = new DrupalDateTime($value);
+  if ($date->hasErrors()) {
+    return $value;
+  }
+
+  return $date->format('d/m/Y H:i');
 }

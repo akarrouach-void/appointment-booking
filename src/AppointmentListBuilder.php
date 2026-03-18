@@ -37,7 +37,12 @@ final class AppointmentListBuilder extends EntityListBuilder {
     $row['appointment_agency'] = $agency ? $agency->label() : '—';
     $adviser = $entity->get('appointment_adviser')->entity;
     $row['appointment_adviser'] = $adviser ? $adviser->getDisplayName() : '—';
-    $row['status'] = $entity->get('status')->value ? $this->t('Confirmed') : $this->t('Cancelled');
+    $status = (string) ($entity->get('appointment_status')->value ?? 'pending');
+    $row['status'] = match ($status) {
+      'confirmed' => $this->t('Confirmed'),
+      'cancelled' => $this->t('Cancelled'),
+      default => $this->t('Pending'),
+    };
     return $row + parent::buildRow($entity);
   }
 
