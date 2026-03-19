@@ -1,7 +1,7 @@
 entity.agency.settings:
   title: 'Agency'
   description: 'Configure an Agency entity type.'
-  route_name:  entity.agency.settings
+  route_name: entity.agency.settings
   parent: system.admin_structure
 
 entity.agency.collection:
@@ -13,7 +13,7 @@ entity.agency.collection:
 entity.appointment.settings:
   title: 'Appointment'
   description: 'Configure an Appointment entity type.'
-  route_name:  entity.appointment.settings
+  route_name: entity.appointment.settings
   parent: system.admin_structure
 
 entity.appointment.collection:
@@ -21,3 +21,17 @@ entity.appointment.collection:
   description: 'List of appointments.'
   route_name: entity.appointment.collection
   parent: system.admin_content
+
+appointment.booking:
+  title: 'Prendre un rendez-vous'
+  description: 'Page pour prendre un rendez-vous.'
+  menu_name: main
+  route_name: appointment.booking_form
+  weight: 1
+
+appointment.manage_lookup:
+  title: 'Gerer mon rendez-vous'
+  description: 'Page pour gerer mon rendez-vous.'
+  menu_name: main
+  route_name: appointment.manage_lookup
+  weight: 2
