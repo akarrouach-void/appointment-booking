@@ -1,0 +1,5 @@
+services:
+  appointment.wizard_helper:
+    class: Drupal\appointment\Service\AppointmentWizardHelper
+    arguments:
+      - '@entity_type.manager'
