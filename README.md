@@ -9,11 +9,13 @@ A custom Drupal 11 module for booking appointments with advisers at agencies.
 - [Office Hours](https://www.drupal.org/project/office_hours)
 - [Token](https://www.drupal.org/project/token)
 - [Pathauto](https://www.drupal.org/project/pathauto)
+- [Better Exposed Filters](https://www.drupal.org/project/better_exposed_filters)
+- [Views Data Export](https://www.drupal.org/project/views_data_export)
 
 ## Installation
 
 ```bash
-composer require drupal/profile drupal/office_hours drupal/token drupal/pathauto
+composer require drupal/profile drupal/office_hours drupal/token drupal/pathauto drupal/better_exposed_filters drupal/views_data_export
 drush en appointment -y
 drush cr
 ```
@@ -122,7 +124,7 @@ Fields:
 - Phone
 - Email
 - Operating hours (`field_operating_hours`)
-- Specializations (`field_specializations`) - Entity reference to appointment_type taxonomy, accepts multiple values
+- Specializations (`field_specializations`) — Entity reference to appointment_type taxonomy, accepts multiple values
 
 ### Specializations field
 
@@ -161,6 +163,112 @@ Fields:
 Reference code is auto-generated in this format:
 
 `RDV-YYYY-DDMMHHSS-XXXX`
+
+---
+
+## Admin Interface
+
+### Appointments Listing
+
+The admin appointments listing is available at `/admin/structure/appointment`.
+
+![Admin appointments listing](images/admin_listing.png)
+
+It is implemented as a Drupal View and ships with the module via:
+
+```
+config/optional/views.view.appointments_admin.yml
+```
+
+The view is automatically installed when the module is enabled on a fresh site.
+
+#### Columns
+
+| Column              | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| Référence           | Auto-generated reference code (e.g. RDV-2026-1703110055-EA82) |
+| Agence              | Agency name, links to agency page                             |
+| Conseiller          | Adviser username                                              |
+| Date et heure       | Appointment date and time                                     |
+| Type de rendez-vous | Appointment type, links to taxonomy term                      |
+| Statut              | Current status in French (En attente, Confirmé, Annulé)       |
+| Actions             | Edit and Delete operation links                               |
+
+#### Exposed Filters
+
+| Filter              | Type                   | Description                               |
+| ------------------- | ---------------------- | ----------------------------------------- |
+| Statut              | Select list            | Filter by En attente, Confirmé, or Annulé |
+| Agence              | Select list            | Filter by agency name                     |
+| Conseiller          | Select list            | Filter by adviser                         |
+| Type de rendez-vous | Select list            | Filter by appointment type                |
+| Date                | Date range (Min / Max) | Filter by date from and to                |
+
+The filter dropdowns are powered by `hook_views_data_alter` in `appointment.module`
+which registers the correct filter handlers for base fields — this is the standard
+Drupal pattern for entities that define fields in code rather than through Field UI.
+
+#### Access
+
+The listing page requires the `administer appointment` permission.
+
+---
+
+### CSV Export
+
+The CSV export is available at `/admin/structure/appointment/export`.
+
+An **Exporter en CSV** button appears automatically on the listing page and
+inherits whatever filters are currently active. Only the filtered results are exported.
+
+The CSV file includes all appointment fields including customer details not shown
+in the table:
+
+| Column              | Description                   |
+| ------------------- | ----------------------------- |
+| Référence           | Auto-generated reference code |
+| Agence              | Agency name                   |
+| Conseiller          | Adviser name                  |
+| Date et heure       | Appointment date and time     |
+| Type de rendez-vous | Appointment type              |
+| Statut              | Status in French              |
+| Nom du client       | Customer full name            |
+| Email               | Customer email address        |
+| Téléphone           | Customer phone number         |
+| Notes               | Appointment notes             |
+
+The export uses the `views_data_export` module with no row limit, making it
+safe for large datasets.
+
+#### Access
+
+The export page requires the `administer appointment` permission.
+
+---
+
+## Permissions
+
+| Permission               | Description                                                       |
+| ------------------------ | ----------------------------------------------------------------- |
+| `administer appointment` | Full access: create, edit, delete, view admin listing, export CSV |
+| `view appointment`       | View individual appointment pages                                 |
+| `edit appointment`       | Edit existing appointments                                        |
+| `delete appointment`     | Delete appointments                                               |
+| `create appointment`     | Create new appointments                                           |
+
+Assign permissions at `/admin/people/permissions`.
+
+---
+
+## Public Routes
+
+| Path                           | Description                              |
+| ------------------------------ | ---------------------------------------- |
+| `/prendre-un-rendez-vous`      | 6-step booking wizard                    |
+| `/gerer-rendez-vous`           | Lookup appointment by reference + phone  |
+| `/gerer-rendez-vous/actions`   | Modify or cancel a verified appointment  |
+| `/gerer-rendez-vous/modifier`  | Multi-step appointment modification form |
+| `/gerer-rendez-vous/supprimer` | Appointment cancellation form            |
 
 ---
 

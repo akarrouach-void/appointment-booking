@@ -10,6 +10,102 @@ declare(strict_types=1);
 use Drupal\appointment\Entity\AppointmentInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Render\Element;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function appointment_views_data_alter(array &$data): void {
+
+  // Date — proper date picker.
+  if (isset($data['appointment']['appointment_date'])) {
+    $data['appointment']['appointment_date']['filter']['id'] = 'datetime';
+    $data['appointment']['appointment_date']['filter']['field_name'] = 'appointment_date';
+  }
+
+  // Status — select list with French labels.
+  if (isset($data['appointment']['appointment_status'])) {
+    $data['appointment']['appointment_status']['filter']['id'] = 'in_operator';
+    $data['appointment']['appointment_status']['filter']['options callback'] = 'appointment_status_filter_options';
+  }
+
+  // Agency — select list with agency names.
+  if (isset($data['appointment']['appointment_agency'])) {
+    $data['appointment']['appointment_agency']['filter']['id'] = 'in_operator';
+    $data['appointment']['appointment_agency']['filter']['options callback'] = 'appointment_agency_filter_options';
+  }
+
+  // Adviser — select list with adviser names.
+  if (isset($data['appointment']['appointment_adviser'])) {
+    $data['appointment']['appointment_adviser']['filter']['id'] = 'in_operator';
+    $data['appointment']['appointment_adviser']['filter']['options callback'] = 'appointment_adviser_filter_options';
+  }
+
+  // Type — select list with type names.
+  if (isset($data['appointment']['appointment_type'])) {
+    $data['appointment']['appointment_type']['filter']['id'] = 'in_operator';
+    $data['appointment']['appointment_type']['filter']['options callback'] = 'appointment_type_filter_options';
+  }
+}
+
+/**
+ * Options callback for appointment_status filter.
+ */
+function appointment_status_filter_options(): array {
+  return [
+    'pending'   => new TranslatableMarkup('En attente'),
+    'confirmed' => new TranslatableMarkup('Confirmé'),
+    'cancelled' => new TranslatableMarkup('Annulé'),
+  ];
+}
+
+/**
+ * Options callback for appointment_agency filter.
+ */
+function appointment_agency_filter_options(): array {
+  $options = [];
+  $agencies = \Drupal::entityTypeManager()
+    ->getStorage('agency')
+    ->loadMultiple();
+  foreach ($agencies as $agency) {
+    $options[$agency->id()] = $agency->label();
+  }
+  return $options;
+}
+
+/**
+ * Options callback for appointment_adviser filter.
+ */
+function appointment_adviser_filter_options(): array {
+  $options = [];
+  $ids = \Drupal::entityTypeManager()
+    ->getStorage('user')
+    ->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('roles', 'adviser')
+    ->condition('status', 1)
+    ->sort('name')
+    ->execute();
+  foreach (\Drupal::entityTypeManager()->getStorage('user')->loadMultiple($ids) as $user) {
+    /** @var \Drupal\user\UserInterface $user */
+    $options[$user->id()] = $user->getDisplayName();
+  }
+  return $options;
+}
+
+/**
+ * Options callback for appointment_type filter.
+ */
+function appointment_type_filter_options(): array {
+  $options = [];
+  $terms = \Drupal::entityTypeManager()
+    ->getStorage('taxonomy_term')
+    ->loadByProperties(['vid' => 'appointment_type']);
+  foreach ($terms as $term) {
+    $options[$term->id()] = $term->label();
+  }
+  return $options;
+}
 
 /**
  * Implements hook_theme().
@@ -138,3 +234,4 @@ function appointment_format_date_label(AppointmentInterface $appointment): strin
 
   return $date->format('d/m/Y H:i');
 }
+

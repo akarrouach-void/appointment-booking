@@ -7,6 +7,7 @@ namespace Drupal\appointment\Entity;
 use Drupal\Core\Entity\Attribute\ContentEntityType;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\ContentEntityDeleteForm;
+use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Form\DeleteMultipleForm;
@@ -16,7 +17,6 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\appointment\AppointmentAccessControlHandler;
 use Drupal\appointment\Entity\AppointmentInterface;
 use Drupal\appointment\AppointmentListBuilder;
-use Drupal\appointment\Form\AppointmentForm;
 use Drupal\views\EntityViewsData;
 
 /**
@@ -39,8 +39,8 @@ use Drupal\views\EntityViewsData;
     'views_data' => EntityViewsData::class,
     'access' => AppointmentAccessControlHandler::class,
     'form' => [
-      'add' => AppointmentForm::class,
-      'edit' => AppointmentForm::class,
+      'add' => ContentEntityForm::class,
+      'edit' => ContentEntityForm::class,
       'delete' => ContentEntityDeleteForm::class,
       'delete-multiple-confirm' => DeleteMultipleForm::class,
     ],

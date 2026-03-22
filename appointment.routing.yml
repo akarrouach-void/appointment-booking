@@ -47,7 +47,7 @@ entity.agency.settings:
     _permission: 'administer agency'
 
 entity.appointment.settings:
-  path: 'admin/structure/appointment'
+  path: 'admin/structure/appointment/settings'
   defaults:
     _form: '\Drupal\appointment\Form\AppointmentSettingsForm'
     _title: 'Appointment'
