@@ -8,3 +8,9 @@ dependencies:
   - drupal:office_hours
   - drupal:token
   - drupal:pathauto
+  - drupal:views
+  - drupal:options
+  - drupal:datetime
+  - drupal:taxonomy
+  - better_exposed_filters:better_exposed_filters
+  - views_data_export:views_data_export

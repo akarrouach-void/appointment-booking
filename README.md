@@ -166,6 +166,81 @@ Reference code is auto-generated in this format:
 
 ---
 
+## Public Booking Flow
+
+### Step 1 — 6-Step Booking Wizard
+
+The booking wizard is accessible at `/prendre-un-rendez-vous`. It guides the customer through 6 steps using AJAX to avoid full page reloads.
+
+![Booking wizard — step 1 agency selection](images/booking_wizard.png)
+
+| Step           | Description                                                |
+| -------------- | ---------------------------------------------------------- |
+| 1. Agency      | Choose from all available agencies                         |
+| 2. Type        | Choose appointment type filtered by agency specializations |
+| 3. Adviser     | Choose adviser filtered by agency and specialization       |
+| 4. Date & Time | Choose a date and available 30-minute slot                 |
+| 5. Your info   | Enter name, email, phone and optional notes                |
+| 6. Confirm     | Review all details and confirm                             |
+
+On confirmation the system:
+
+- Creates the appointment entity with status `pending`
+- Auto-generates a unique reference code (`RDV-YYYY-DDMMHHSS-XXXX`)
+- Sends a confirmation email to the customer
+- Redirects to the appointment management page
+
+**Double-booking prevention** — when a customer selects a date, the system queries all non-cancelled appointments for that adviser on that day and removes those time slots from the available options.
+
+---
+
+## Appointment Management
+
+### Lookup by Reference and Phone
+
+At `/gerer-rendez-vous`, customers enter their reference code and phone number to access their appointment.
+
+![Appointment lookup form](images/appointment_lookup.png)
+
+The form includes:
+
+- **Flood protection** — maximum 10 failed attempts per hour per IP address
+- **Session-based verification** — once verified, the session is valid for 30 minutes
+- Phone number normalisation — strips non-digit characters before comparing
+
+### Modify Appointment
+
+After verification, the customer can modify their appointment using the same 6-step wizard as the booking form. The existing appointment data is pre-filled. The current time slot is excluded from the double-booking check so the customer can keep the same slot.
+
+### Cancel Appointment
+
+The customer confirms cancellation with a checkbox. The system performs a soft cancel:
+
+- Sets `appointment_status` to `cancelled`
+- Sets the entity published status to `false` (unpublished)
+- Sends a cancellation email
+- Frees the time slot for other bookings
+
+---
+
+## Email Notifications
+
+All email notifications are sent via `hook_mail()` in `appointment.module`. Emails are triggered for three events:
+
+![Email notifications in Mailpit](images/email_notifications.png)
+
+| Key         | Trigger                   | Subject                                     |
+| ----------- | ------------------------- | ------------------------------------------- |
+| `created`   | New appointment confirmed | Your appointment RDV-... has been created   |
+| `modified`  | Appointment updated       | Your appointment RDV-... has been modified  |
+| `cancelled` | Appointment cancelled     | Your appointment RDV-... has been cancelled |
+
+Each email contains: reference code, date, agency, appointment type, and adviser name.
+
+During development, emails are captured by [Mailpit](https://github.com/axllent/mailpit) which ships with DDEV at `https://<project>.ddev.site:8026`.
+
+---
+
 ## Admin Interface
 
 ### Appointments Listing
