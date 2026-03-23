@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.profile.adviser.field_agency
     - field.field.profile.adviser.field_specializations
     - field.field.profile.adviser.field_working_hours
     - profile.type.adviser
@@ -13,12 +14,20 @@ targetEntityType: profile
 bundle: adviser
 mode: default
 content:
+  field_agency:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {}
+    weight: 2
+    region: content
   field_specializations:
     type: entity_reference_label
     label: above
     settings:
       link: true
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 0
     region: content
   field_working_hours:
@@ -54,7 +63,7 @@ content:
       office_hours_first_day: ''
       schema:
         enabled: false
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 1
     region: content
-hidden: {  }
+hidden: {}

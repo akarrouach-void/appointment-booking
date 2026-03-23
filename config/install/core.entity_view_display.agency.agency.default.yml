@@ -18,7 +18,7 @@ content:
     label: above
     settings:
       link_to_entity: false
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 0
     region: content
   created:
@@ -37,21 +37,21 @@ content:
         past_format: '@interval ago'
         granularity: 2
         refresh: 60
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 20
     region: content
   description:
     type: text_default
     label: above
-    settings: {  }
-    third_party_settings: {  }
+    settings: {}
+    third_party_settings: {}
     weight: 10
     region: content
   email:
     type: email_mailto
     label: above
-    settings: {  }
-    third_party_settings: {  }
+    settings: {}
+    third_party_settings: {}
     weight: 2
     region: content
   field_operating_hours:
@@ -87,7 +87,7 @@ content:
       office_hours_first_day: ''
       schema:
         enabled: false
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 21
     region: content
   label:
@@ -95,7 +95,7 @@ content:
     label: hidden
     settings:
       link_to_entity: false
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: -5
     region: content
   phone:
@@ -103,7 +103,7 @@ content:
     label: above
     settings:
       link_to_entity: false
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 1
     region: content
   status:
@@ -113,7 +113,7 @@ content:
       format: enabled-disabled
       format_custom_false: ''
       format_custom_true: ''
-    third_party_settings: {  }
+    third_party_settings: {}
     weight: 0
     region: content
-hidden: {  }
+hidden: {}

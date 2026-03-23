@@ -1,3 +1,18 @@
+uuid: f6280cc9-07ba-4fe6-a138-14b879f54b22
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.profile.adviser.field_agency
+    - field.field.profile.adviser.field_specializations
+    - field.field.profile.adviser.field_working_hours
+    - profile.type.adviser
+  module:
+    - office_hours
+id: profile.adviser.default
+targetEntityType: profile
+bundle: adviser
+mode: default
 content:
   field_agency:
     type: entity_reference_autocomplete
@@ -27,3 +42,5 @@ content:
       collapsed: false
       collapsed_exceptions: true
     third_party_settings: {}
+hidden:
+  is_default: true
