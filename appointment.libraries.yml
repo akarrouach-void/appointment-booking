@@ -1,3 +1,9 @@
+fullcalendar:
+  js:
+    https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js:
+      type: external
+      minified: true
+
 booking_wizard:
   version: 1.x
   css:
@@ -6,3 +12,12 @@ booking_wizard:
   dependencies:
     - core/drupal
     - core/drupal.ajax
+
+booking_calendar:
+  version: 1.x
+  js:
+    js/appointment-calendar.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - appointment/fullcalendar

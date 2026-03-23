@@ -53,3 +53,11 @@ entity.appointment.settings:
     _title: 'Appointment'
   requirements:
     _permission: 'administer appointment'
+
+appointment.slots:
+  path: '/appointment/slots'
+  defaults:
+    _controller: '\Drupal\appointment\Controller\AppointmentSlotsController::getSlots'
+    _title: 'Slots'
+  requirements:
+    _permission: 'access content'

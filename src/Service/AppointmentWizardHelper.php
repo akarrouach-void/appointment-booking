@@ -151,6 +151,58 @@ final class AppointmentWizardHelper {
     return $options;
   }
 
+    /**
+   * Returns FullCalendar-formatted slot events for the next N days.
+   *
+   * @param int $adviser_id
+   * @param int $days Number of days ahead to generate slots for.
+   * @param int $exclude_appointment_id
+   */
+  public function getCalendarSlots(int $adviser_id, int $days = 30, int $exclude_appointment_id = 0): array {
+    if ($adviser_id <= 0) {
+      return [];
+    }
+
+    $events = [];
+    $today = new \DateTimeImmutable('today');
+
+    for ($i = 0; $i < $days; $i++) {
+      $date = $today->modify("+{$i} days");
+      $date_str = $date->format('Y-m-d');
+
+      $available_slots = $this->getAvailableHalfHourSlots($adviser_id, $date_str, $exclude_appointment_id);
+      $booked_times = $this->getBookedTimesForDate($adviser_id, $date_str, $exclude_appointment_id);
+
+      foreach ($available_slots as $time) {
+        [$h, $m] = explode(':', $time);
+        $end_m = (int) $m + 30;
+        $end_h = (int) $h + intdiv($end_m, 60);
+        $end_m = $end_m % 60;
+
+        $events[] = [
+          'start' => $date_str . 'T' . $time . ':00',
+          'end' => $date_str . 'T' . sprintf('%02d:%02d', $end_h, $end_m) . ':00',
+          'available' => true,
+        ];
+      }
+
+      foreach ($booked_times as $time) {
+        [$h, $m] = explode(':', $time);
+        $end_m = (int) $m + 30;
+        $end_h = (int) $h + intdiv($end_m, 60);
+        $end_m = $end_m % 60;
+
+        $events[] = [
+          'start' => $date_str . 'T' . $time . ':00',
+          'end' => $date_str . 'T' . sprintf('%02d:%02d', $end_h, $end_m) . ':00',
+          'available' => false,
+        ];
+      }
+    }
+
+    return $events;
+  }
+
   /**
    * Returns adviser options filtered by agency and specialization.
    */

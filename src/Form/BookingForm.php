@@ -47,6 +47,9 @@ final class BookingForm extends FormBase {
     $form['#prefix'] = '<div id="booking-form-wrapper">';
     $form['#suffix'] = '</div>';
     $form['#attached']['library'][] = 'appointment/booking_wizard';
+    if ($step === 4) {
+      $form['#attached']['library'][] = 'appointment/booking_calendar';
+    }
     $form['progress']['#markup'] = $this->wizardHelper->buildProgressMarkup($step);
     $form['wizard'] = [
       '#type' => 'container',
@@ -126,21 +129,18 @@ final class BookingForm extends FormBase {
     }
 
     if ($step === 4) {
-      $day = (string) ($this->value($form_state, 'appointment_day') ?? '');
-      $time = (string) ($this->value($form_state, 'appointment_time') ?? '');
-
-      if ($day === '') {
-        $form_state->setErrorByName('wizard][appointment_day', $this->t('Please choose a date.'));
+      $date = (string) ($this->value($form_state, 'appointment_date') ?? '');
+      if ($date === '' || strlen($date) < 16) {
+        $form_state->setErrorByName('wizard][appointment_date', $this->t('Please select a time slot on the calendar.'));
+        return;
       }
-      if ($time === '') {
-        $form_state->setErrorByName('wizard][appointment_time', $this->t('Please choose a time slot.'));
-      }
-      if ($day !== '' && $time !== '') {
-        $data = $this->loadWizardData();
-        $slots = $this->wizardHelper->getAvailableHalfHourSlots((int) ($data['adviser'] ?? 0), $day);
-        if (!isset($slots[$time])) {
-          $form_state->setErrorByName('wizard][appointment_time', $this->t('Selected time is not available for this adviser.'));
-        }
+      // Verify slot is still available.
+      $day = substr($date, 0, 10);
+      $time = substr($date, 11, 5);
+      $data = $this->loadWizardData();
+      $slots = $this->wizardHelper->getAvailableHalfHourSlots((int) ($data['adviser'] ?? 0), $day);
+      if (!isset($slots[$time])) {
+        $form_state->setErrorByName('wizard][appointment_date', $this->t('Selected slot is no longer available.'));
       }
     }
 
@@ -235,33 +235,23 @@ final class BookingForm extends FormBase {
     $container['title']['#markup'] = '<h3>4. ' . $this->t('Choose date and time') . '</h3>';
 
     $adviser_id = (int) ($data['adviser'] ?? 0);
-    $day = (string) ($this->value($form_state, 'appointment_day') ?? $data['appointment_day'] ?? '');
-    $time = (string) ($this->value($form_state, 'appointment_time') ?? $data['appointment_time'] ?? '');
-    $time_options = $day !== '' ? $this->wizardHelper->getAvailableHalfHourSlots($adviser_id, $day) : [];
+    $existing_date = (string) ($data['appointment_date'] ?? '');
 
-    if ($time !== '' && !isset($time_options[$time])) {
-      $time = '';
-    }
-
-    $container['appointment_day'] = [
-      '#type' => 'date',
-      '#title' => $this->t('Date'),
-      '#default_value' => $day,
-      '#required' => TRUE,
-      '#ajax' => ['callback' => '::ajaxRefresh', 'wrapper' => 'booking-form-wrapper', 'event' => 'change'],
-    ];
-    $container['appointment_time'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Time slot (30 min)'),
-      '#options' => $time_options,
-      '#empty_option' => $this->t('- Select a time -'),
-      '#default_value' => $time ?: NULL,
-      '#required' => TRUE,
+    $container['calendar_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'id' => 'appointment-calendar',
+        'data-adviser' => $adviser_id,
+        'data-slots-url' => '/appointment/slots',
+        'data-exclude-id' => 0,
+      ],
     ];
 
-    if ($day !== '' && empty($time_options)) {
-      $container['no_slots']['#markup'] = '<p>' . $this->t('No available 30-minute slots for this adviser on the selected date.') . '</p>';
-    }
+    $container['appointment_date'] = [
+      '#type' => 'hidden',
+      '#attributes' => ['id' => 'appointment-selected-date'],
+      '#default_value' => $existing_date,
+    ];
   }
 
   private function buildStepCustomer(array &$container, array $data): void {
@@ -338,16 +328,10 @@ final class BookingForm extends FormBase {
       return;
     }
     if ($step === 4) {
-      $day = (string) ($this->value($form_state, 'appointment_day') ?? '');
-      $time = (string) ($this->value($form_state, 'appointment_time') ?? '');
-      $data['appointment_day'] = $day;
-      $data['appointment_time'] = $time;
-      if ($day !== '' && $time !== '') {
-        $data['appointment_date'] = $day . 'T' . $time . ':00';
-      }
-      else {
-        unset($data['appointment_date']);
-      }
+      $date = (string) ($this->value($form_state, 'appointment_date') ?? '');
+      $data['appointment_date'] = $date;
+      $data['appointment_day'] = strlen($date) >= 10 ? substr($date, 0, 10) : '';
+      $data['appointment_time'] = strlen($date) >= 16 ? substr($date, 11, 5) : '';
       return;
     }
     if ($step === 5) {
@@ -377,7 +361,7 @@ final class BookingForm extends FormBase {
       1 => [['wizard', 'agency']],
       2 => [['wizard', 'appointment_type']],
       3 => [['wizard', 'adviser']],
-      4 => [['wizard', 'appointment_day'], ['wizard', 'appointment_time']],
+      4 => [['wizard', 'appointment_date']],
       5 => [['wizard', 'customer_name'], ['wizard', 'customer_email'], ['wizard', 'customer_phone']],
       default => [],
     };

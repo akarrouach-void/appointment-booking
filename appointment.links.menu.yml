@@ -35,3 +35,10 @@ appointment.manage_lookup:
   menu_name: main
   route_name: appointment.manage_lookup
   weight: 2
+
+appointment.admin.listing:
+  title: 'Gestion des rendez-vous'
+  description: 'Consulter et filtrer tous les rendez-vous.'
+  route_name: view.appointments_admin.page_1
+  parent: system.admin_structure
+  weight: 10
