@@ -24,7 +24,7 @@ final class AppointmentCancelForm extends AppointmentManagementBaseForm {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $form['#attached']['library'][] = 'appointment/booking_wizard';
 
-    $appointment = $this->getVerifiedAppointment();
+    $appointment = $this->managementHelper->getVerifiedAppointment();
     if (!$appointment) {
       $form['expired'] = [
         '#type' => 'markup',
@@ -41,7 +41,7 @@ final class AppointmentCancelForm extends AppointmentManagementBaseForm {
 
     $form['summary'] = [
       '#type' => 'markup',
-      '#markup' => $this->buildAppointmentSummaryMarkup($appointment),
+      '#markup' => $this->managementHelper->buildAppointmentSummaryMarkup($appointment),
     ];
 
     $status = (string) ($appointment->get('appointment_status')->value ?? 'pending');
@@ -87,7 +87,7 @@ final class AppointmentCancelForm extends AppointmentManagementBaseForm {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $appointment = $this->getVerifiedAppointment();
+    $appointment = $this->managementHelper->getVerifiedAppointment();
     if (!$appointment) {
       $this->messenger()->addError($this->t('Your verification session has expired.'));
       $form_state->setRedirect('appointment.manage_lookup');
@@ -98,10 +98,10 @@ final class AppointmentCancelForm extends AppointmentManagementBaseForm {
       $appointment->set('appointment_status', 'cancelled');
       $appointment->set('status', FALSE);
       $appointment->save();
-      $this->sendAppointmentMail('cancelled', $appointment);
+      $this->managementHelper->sendAppointmentMail('cancelled', $appointment);
     }
 
-    $this->clearVerification();
+    $this->managementHelper->clearVerification();
     $this->messenger()->addStatus($this->t('Your appointment has been cancelled.'));
     $form_state->setRedirect('appointment.manage_lookup');
   }

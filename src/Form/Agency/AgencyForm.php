@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\appointment\Form;
+namespace Drupal\appointment\Form\Agency;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;

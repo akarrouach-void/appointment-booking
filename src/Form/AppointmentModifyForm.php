@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Drupal\appointment\Form;
 
-use Drupal\Component\Datetime\TimeInterface;
+use Drupal\appointment\Service\AppointmentManagementHelper;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\TempStore\PrivateTempStore;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\appointment\Service\AppointmentWizardHelper;
@@ -26,21 +24,17 @@ final class AppointmentModifyForm extends AppointmentManagementBaseForm {
   public function __construct(
     PrivateTempStoreFactory $tempStoreFactory,
     EntityTypeManagerInterface $entityTypeManager,
-    TimeInterface $time,
-    MailManagerInterface $mailManager,
-    LanguageManagerInterface $languageManager,
+    AppointmentManagementHelper $managementHelper,
     protected AppointmentWizardHelper $wizardHelper,
   ) {
-    parent::__construct($tempStoreFactory, $entityTypeManager, $time, $mailManager, $languageManager);
+    parent::__construct($tempStoreFactory, $entityTypeManager, $managementHelper);
   }
 
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('tempstore.private'),
       $container->get('entity_type.manager'),
-      $container->get('datetime.time'),
-      $container->get('plugin.manager.mail'),
-      $container->get('language_manager'),
+      $container->get('appointment.management_helper'),
       $container->get('appointment.wizard_helper'),
     );
   }
@@ -55,7 +49,7 @@ final class AppointmentModifyForm extends AppointmentManagementBaseForm {
     $form['#suffix'] = '</div>';
     $form['#attached']['library'][] = 'appointment/booking_wizard';
 
-    $appointment_to_edit = $this->getVerifiedAppointment();
+    $appointment_to_edit = $this->managementHelper->getVerifiedAppointment();
 
     if (!$appointment_to_edit) {
       $form['expired']['#markup'] = '<p>' . $this->t('Your verification session has expired. Please verify again.') . '</p>';
@@ -164,13 +158,13 @@ final class AppointmentModifyForm extends AppointmentManagementBaseForm {
 
   public function cancelEditSubmit(array &$form, FormStateInterface $form_state): void {
     $this->clearWizardData();
-    $this->clearVerification();
+    $this->managementHelper->clearVerification();
     $form_state->setRedirect('appointment.manage_lookup');
   }
 
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $step = $this->currentStep($form_state);
-    $appointment_to_edit = $this->getVerifiedAppointment();
+    $appointment_to_edit = $this->managementHelper->getVerifiedAppointment();
 
     if (!$appointment_to_edit) {
       $form_state->setErrorByName('wizard][appointment_day', $this->t('Your verification session has expired.'));
@@ -214,7 +208,7 @@ final class AppointmentModifyForm extends AppointmentManagementBaseForm {
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $appointment_to_edit = $this->getVerifiedAppointment();
+    $appointment_to_edit = $this->managementHelper->getVerifiedAppointment();
 
     if (!$appointment_to_edit) {
       $this->messenger()->addError($this->t('Your verification session has expired.'));
@@ -257,7 +251,7 @@ final class AppointmentModifyForm extends AppointmentManagementBaseForm {
     }
 
     $appointment_to_edit->save();
-    $this->sendAppointmentMail('modified', $appointment_to_edit);
+    $this->managementHelper->sendAppointmentMail('modified', $appointment_to_edit);
 
     $reference = (string) ($appointment_to_edit->get('reference')->value ?? '-');
     $this->clearWizardData();

@@ -16,7 +16,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\appointment\AgencyAccessControlHandler;
 use Drupal\appointment\Entity\AgencyInterface;
 use Drupal\appointment\AgencyListBuilder;
-use Drupal\appointment\Form\AgencyForm;
+use Drupal\appointment\Form\Agency\AgencyForm;
 use Drupal\views\EntityViewsData;
 
 /**
@@ -197,6 +197,7 @@ class Agency extends ContentEntityBase implements AgencyInterface {
     $fields['field_specializations'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(new TranslatableMarkup('Specializations'))
       ->setDescription(new TranslatableMarkup('The types of appointments/services this agency offers. An agency can have multiple specializations.'))
+      // Allow unlimited values to enable selecting multiple specializations for an agency.
       ->setCardinality(-1) // Unlimited values
       ->setSetting('target_type', 'taxonomy_term')
       ->setSetting('handler', 'default:taxonomy_term')

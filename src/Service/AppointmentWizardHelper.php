@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Drupal\appointment\Service;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -19,11 +18,8 @@ final class AppointmentWizardHelper {
 
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
+    protected AppointmentManagementHelper $managementHelper,
   ) {}
-
-  // ---------------------------------------------------------------------------
-  // Slot helpers
-  // ---------------------------------------------------------------------------
 
   /**
    * Returns available 30-minute slots for an adviser on a given date.
@@ -124,10 +120,6 @@ final class AppointmentWizardHelper {
     $profile = reset($profiles);
     return $profile instanceof ContentEntityInterface ? $profile : NULL;
   }
-
-  // ---------------------------------------------------------------------------
-  // Entity option helpers
-  // ---------------------------------------------------------------------------
 
   /**
    * Returns appointment type options for the selected agency.
@@ -238,49 +230,19 @@ final class AppointmentWizardHelper {
     return $options;
   }
 
-  // ---------------------------------------------------------------------------
-  // Mail helpers
-  // ---------------------------------------------------------------------------
-
   /**
    * Sends an appointment notification email.
    */
   public function sendAppointmentMail(string $key, ContentEntityInterface $appointment): void {
-    $to = trim((string) ($appointment->get('customer_email')->value ?? ''));
-    if ($to === '') {
-      return;
-    }
-    $result = \Drupal::service('plugin.manager.mail')->mail(
-      'appointment',
-      $key,
-      $to,
-      \Drupal::languageManager()->getDefaultLanguage()->getId(),
-      [
-        'appointment' => $appointment,
-        'reference' => (string) ($appointment->get('reference')->value ?? ''),
-        'date_label' => $this->formatAppointmentDateLabel($appointment),
-      ],
-    );
-    if (empty($result['result'])) {
-      \Drupal::messenger()->addWarning($this->t('Appointment updated, but email could not be sent.'));
-    }
+    $this->managementHelper->sendAppointmentMail($key, $appointment);
   }
 
   /**
    * Formats the appointment date for use in email payloads.
    */
   public function formatAppointmentDateLabel(ContentEntityInterface $appointment): string {
-    $value = (string) ($appointment->get('appointment_date')->value ?? '');
-    if ($value === '') {
-      return '-';
-    }
-    $date = new DrupalDateTime($value);
-    return $date->hasErrors() ? $value : $date->format('d/m/Y H:i');
+    return $this->managementHelper->formatAppointmentDate($appointment);
   }
-
-  // ---------------------------------------------------------------------------
-  // UI helpers
-  // ---------------------------------------------------------------------------
 
   /**
    * Builds the step progress bar markup.

@@ -24,7 +24,7 @@ final class AppointmentManageActionsForm extends AppointmentManagementBaseForm {
   public function buildForm(array $form, FormStateInterface $form_state): array {
     $form['#attached']['library'][] = 'appointment/booking_wizard';
 
-    $appointment = $this->getVerifiedAppointment();
+    $appointment = $this->managementHelper->getVerifiedAppointment();
     if (!$appointment) {
       $form['expired'] = [
         '#type' => 'markup',
@@ -47,7 +47,7 @@ final class AppointmentManageActionsForm extends AppointmentManagementBaseForm {
 
     $form['summary'] = [
       '#type' => 'markup',
-      '#markup' => $this->buildAppointmentSummaryMarkup($appointment),
+      '#markup' => $this->managementHelper->buildAppointmentSummaryMarkup($appointment),
     ];
 
     $form['actions'] = ['#type' => 'actions'];
@@ -95,7 +95,7 @@ final class AppointmentManageActionsForm extends AppointmentManagementBaseForm {
    * Restarts appointment verification.
    */
   public function restartSubmit(array &$form, FormStateInterface $form_state): void {
-    $this->clearVerification();
+    $this->managementHelper->clearVerification();
     $form_state->setRedirect('appointment.manage_lookup');
   }
 

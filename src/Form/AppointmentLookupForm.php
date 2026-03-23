@@ -67,7 +67,7 @@ final class AppointmentLookupForm extends AppointmentManagementBaseForm {
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $reference = strtoupper(trim((string) $form_state->getValue('reference')));
-    $phone = $this->normalizePhone((string) $form_state->getValue('phone'));
+    $phone = $this->managementHelper->normalizePhone((string) $form_state->getValue('phone'));
     $identifier = (string) ($this->getRequest()->getClientIp() ?? 'unknown');
 
     $flood = \Drupal::service('flood');
@@ -82,14 +82,14 @@ final class AppointmentLookupForm extends AppointmentManagementBaseForm {
       return;
     }
 
-    $appointment = $this->loadByReference($reference);
+    $appointment = $this->managementHelper->loadByReference($reference);
     if (!$appointment instanceof ContentEntityInterface) {
       $form_state->setErrorByName('reference', $this->t('No appointment matches the provided details.'));
       $flood->register('appointment.lookup', 3600, $identifier);
       return;
     }
 
-    $stored_phone = $this->normalizePhone((string) ($appointment->get('customer_phone')->value ?? ''));
+    $stored_phone = $this->managementHelper->normalizePhone((string) ($appointment->get('customer_phone')->value ?? ''));
     if ($stored_phone === '' || $stored_phone !== $phone) {
       $form_state->setErrorByName('phone', $this->t('No appointment matches the provided details.'));
       $flood->register('appointment.lookup', 3600, $identifier);
@@ -120,7 +120,7 @@ final class AppointmentLookupForm extends AppointmentManagementBaseForm {
       return;
     }
 
-    $this->setVerifiedAppointment($appointment, $phone);
+    $this->managementHelper->setVerifiedAppointment($appointment, $phone);
     $this->messenger()->addStatus($this->t('Appointment found. You can now modify or cancel it.'));
     $form_state->setRedirect('appointment.manage_actions');
   }

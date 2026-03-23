@@ -41,7 +41,7 @@ appointment.manage_cancel:
 entity.agency.settings:
   path: 'admin/structure/agency'
   defaults:
-    _form: '\Drupal\appointment\Form\AgencySettingsForm'
+    _form: '\Drupal\appointment\Form\Agency\AgencySettingsForm'
     _title: 'Agency'
   requirements:
     _permission: 'administer agency'
