@@ -113,6 +113,49 @@ final class AppointmentWizardHelper {
   }
 
   /**
+   * Returns booked HH:MM times for an adviser on a date range, skipping cancelled.
+   */
+  public function getBookedTimesForDateRange(int $adviser_id, string $start_date, string $end_date, int $exclude_appointment_id = 0): array {
+    $start_obj = date_create_immutable($start_date);
+    $end_obj = date_create_immutable($end_date);
+    if (!$start_obj || !$end_obj) {
+      return [];
+    }
+
+    $query = $this->entityTypeManager->getStorage('appointment')->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('appointment_adviser', $adviser_id)
+      ->condition('appointment_date', $start_obj->format('Y-m-d') . 'T00:00:00', '>=')
+      ->condition('appointment_date', $end_obj->format('Y-m-d') . 'T00:00:00', '<');
+
+    if ($exclude_appointment_id > 0) {
+      $query->condition('id', $exclude_appointment_id, '<>');
+    }
+
+    $ids = $query->execute();
+    if (empty($ids)) {
+      return [];
+    }
+
+    $booked = [];
+    foreach ($this->entityTypeManager->getStorage('appointment')->loadMultiple($ids) as $appointment) {
+      if (!$appointment instanceof ContentEntityInterface || !$appointment->hasField('appointment_date')) {
+        continue;
+      }
+      if ($appointment->hasField('appointment_status') && (string) ($appointment->get('appointment_status')->value ?? '') === 'cancelled') {
+        continue;
+      }
+      $value = (string) ($appointment->get('appointment_date')->value ?? '');
+      if (strlen($value) >= 16) {
+        // Return full date-time strings to identify the day
+        $booked[] = substr($value, 0, 16);
+      }
+    }
+
+    return array_values(array_unique($booked));
+  }
+
+  /**
    * Returns the adviser profile entity for a given user ID.
    */
   public function getAdviserProfile(int $adviser_id): ?ContentEntityInterface {

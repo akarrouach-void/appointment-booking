@@ -68,103 +68,42 @@
 		if (el) el.remove();
 	}
 
-	function clearSlotEvents(cal) {
-		cal.getEvents().forEach(function (ev) {
-			if (ev.extendedProps.type === 'slot') {
-				ev.remove();
-			}
-		});
-	}
-
-	function resetColors(cal) {
-		cal.getEvents().forEach(function (ev) {
-			if (ev.extendedProps.type === 'slot') {
-				ev.setProp('color', ev.extendedProps.available ? '#2e7d32' : '#c62828');
-				ev.setExtendedProp('selected', false);
-			}
-		});
-	}
-
-	function fetchSlotsForDate(
-		cal,
-		calEl,
-		date,
-		adviserId,
-		slotsUrl,
-		excludeId,
-		hiddenField,
-	) {
-		clearSlotEvents(cal);
-		if (
-			hiddenField &&
-			hiddenField.value &&
-			hiddenField.value.substring(0, 10) !== date
-		) {
-			hiddenField.value = '';
-		}
-		getSummaryEl(calEl).textContent = '';
-
-		var url =
-			slotsUrl +
-			'?adviser_id=' +
-			adviserId +
-			'&date=' +
-			date +
-			'&exclude_id=' +
-			(excludeId || 0);
-
-		clearError();
+	function fetchBookedSlots(cal, startStr, endStr, adviserId, excludeId) {
+		var start = startStr.substring(0, 10);
+		var end = endStr.substring(0, 10);
+		
+		var url = '/appointment/booked-slots' +
+			'?adviser_id=' + adviserId +
+			'&start=' + start +
+			'&end=' + end +
+			'&exclude_id=' + (excludeId || 0);
 
 		fetch(url)
-			.then(function (r) {
-				if (!r.ok) throw new Error();
-				return r.json();
-			})
-			.then(function (slots) {
-				if (!slots.length) {
-					getErrorEl(calEl).textContent = Drupal.t(
-						'No available slots on this date.',
-					);
-					return;
-				}
-
-				slots.forEach(function (slot) {
-					cal.addEvent({
-						start: slot.start,
-						end: slot.end,
-						allDay: false,
-						title: slot.available
-							? Drupal.t('Available')
-							: Drupal.t('Unavailable'),
-						color: slot.available ? '#2e7d32' : '#c62828',
-						extendedProps: { type: 'slot', available: slot.available },
-					});
+			.then(function(r) { return r.json(); })
+			.then(function(slots) {
+				cal.getEvents().forEach(function(ev) {
+					if (ev.extendedProps.type === 'slot' && ev.extendedProps.available === false) {
+						ev.remove();
+					}
 				});
-
-				// Restore saved selection.
-				var existing = hiddenField ? hiddenField.value : '';
-				if (existing && existing.startsWith(date)) {
-					cal.getEvents().forEach(function (ev) {
-						if (
-							ev.extendedProps.type === 'slot' &&
-							toLocalIso(ev.start) === existing &&
-							ev.extendedProps.available
-						) {
-							ev.setProp('color', '#1565c0');
-							ev.setExtendedProp('selected', true);
-							getSummaryEl(calEl).innerHTML =
-								'<strong>' +
-								Drupal.t('Selected:') +
-								'</strong> ' +
-								formatSlotLabel(ev.start, ev.end);
+				slots.forEach(function (slot) {
+					var exists = false;
+					cal.getEvents().forEach(function(ev) {
+						if (toLocalIso(ev.start) === slot.start && ev.extendedProps.type === 'slot') {
+							exists = true;
 						}
 					});
-				}
-			})
-			.catch(function () {
-				getErrorEl(calEl).textContent = Drupal.t(
-					'Could not load slots. Please try again.',
-				);
+					if (!exists) {
+						cal.addEvent({
+							start: slot.start,
+							end: slot.end,
+							allDay: false,
+							title: Drupal.t('Unavailable'),
+							color: '#c62828',
+							extendedProps: { type: 'slot', available: false },
+						});
+					}
+				});
 			});
 	}
 
@@ -173,8 +112,6 @@
 			once('appointment-calendar', '#appointment-calendar', context).forEach(
 				function (calEl) {
 					var adviserId = calEl.getAttribute('data-adviser') || 0;
-					var slotsUrl =
-						calEl.getAttribute('data-slots-url') || '/appointment/slots';
 					var excludeId = calEl.getAttribute('data-exclude-id') || 0;
 					var hiddenField = document.getElementById(
 						'appointment-selected-date',
@@ -195,18 +132,60 @@
 						},
 						events: [],
 
-						// On day click — load slots for that specific day only.
+						datesSet: function (info) {
+							fetchBookedSlots(cal, info.startStr, info.endStr, adviserId, excludeId);
+						},
+
+						// On empty cell click — create a blue selection by checking with the backend
 						dateClick: function (info) {
-							var date = info.dateStr.substring(0, 10);
-							fetchSlotsForDate(
-								cal,
-								calEl,
-								date,
-								adviserId,
-								slotsUrl,
-								excludeId,
-								hiddenField,
-							);
+							var clickedDate = info.date;
+							var endDateTime = new Date(clickedDate.getTime() + 30*60*1000);
+							var datetimeStr = toLocalIso(clickedDate);
+							
+							var url = '/appointment/check-slot' +
+								'?adviser_id=' + adviserId +
+								'&datetime=' + datetimeStr +
+								'&exclude_id=' + excludeId;
+
+							clearError();
+
+							fetch(url)
+								.then(function(r) { return r.json(); })
+								.then(function(data) {
+									if (!data.available) {
+										getErrorEl(calEl).textContent = data.message || Drupal.t('This slot is invalid.');
+										return;
+									}
+									
+									// Remove any previously selected blue slot
+									cal.getEvents().forEach(function(ev) {
+										if (ev.extendedProps.type === 'slot' && ev.extendedProps.available === true) {
+											ev.remove();
+										}
+									});
+									
+									// Add the new selected blue slot
+									cal.addEvent({
+										start: clickedDate,
+										end: endDateTime,
+										allDay: false,
+										title: Drupal.t('Selected'),
+										color: '#1565c0',
+										extendedProps: { type: 'slot', available: true, selected: true }
+									});
+									
+									if (hiddenField) {
+										hiddenField.value = datetimeStr;
+									}
+									getSummaryEl(calEl).innerHTML =
+										'<strong>' +
+										Drupal.t('Selected:') +
+										'</strong> ' +
+										formatSlotLabel(clickedDate, endDateTime);
+								})
+								.catch(function() {
+									getErrorEl(calEl).textContent = Drupal.t('Could not verify slot. Please try again.');
+								});
 						},
 
 						eventClick: function (info) {
@@ -217,19 +196,7 @@
 								);
 								return;
 							}
-							clearError();
-							resetColors(cal);
-							info.event.setProp('color', '#1565c0');
-							info.event.setExtendedProp('selected', true);
-
-							if (hiddenField) {
-								hiddenField.value = toLocalIso(info.event.start);
-							}
-							getSummaryEl(calEl).innerHTML =
-								'<strong>' +
-								Drupal.t('Selected:') +
-								'</strong> ' +
-								formatSlotLabel(info.event.start, info.event.end);
+							// If it's already a blue slot, do nothing
 						},
 					});
 
@@ -237,16 +204,22 @@
 
 					// If returning to step 4, restore previously selected date's slots.
 					var existing = hiddenField ? hiddenField.value : '';
-					if (existing.length >= 10) {
-						fetchSlotsForDate(
-							cal,
-							calEl,
-							existing.substring(0, 10),
-							adviserId,
-							slotsUrl,
-							excludeId,
-							hiddenField,
-						);
+					if (existing.length >= 16) {
+						var startDT = new Date(existing);
+						var endDT = new Date(startDT.getTime() + 30*60*1000);
+						cal.addEvent({
+							start: startDT,
+							end: endDT,
+							allDay: false,
+							title: Drupal.t('Selected'),
+							color: '#1565c0',
+							extendedProps: { type: 'slot', available: true, selected: true }
+						});
+						getSummaryEl(calEl).innerHTML =
+							'<strong>' +
+							Drupal.t('Selected:') +
+							'</strong> ' +
+							formatSlotLabel(startDT, endDT);
 					}
 				},
 			);

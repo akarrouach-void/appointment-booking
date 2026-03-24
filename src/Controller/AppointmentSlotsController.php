@@ -20,36 +20,43 @@ final class AppointmentSlotsController extends ControllerBase {
     return new static($container->get('appointment.wizard_helper'));
   }
 
-  public function getSlots(Request $request): JsonResponse {
+  public function checkSlot(Request $request): JsonResponse {
     $adviser_id = (int) $request->query->get('adviser_id', 0);
-    $date = (string) $request->query->get('date', '');
+    $datetime = (string) $request->query->get('datetime', '');
     $exclude_id = (int) $request->query->get('exclude_id', 0);
 
-    if ($adviser_id <= 0 || $date === '') {
+    if ($adviser_id <= 0 || strlen($datetime) < 16) {
+      return new JsonResponse(['available' => FALSE, 'message' => $this->t('Invalid slot selected.')]);
+    }
+
+    $date = substr($datetime, 0, 10);
+    $time = substr($datetime, 11, 5);
+
+    $slots = $this->wizardHelper->getAvailableHalfHourSlots($adviser_id, $date, $exclude_id);
+    
+    if (!isset($slots[$time])) {
+      return new JsonResponse(['available' => FALSE, 'message' => $this->t('This slot is inactive, outside working hours, or already booked.')]);
+    }
+
+    return new JsonResponse(['available' => TRUE]);
+  }
+
+  public function getBookedSlots(Request $request): JsonResponse {
+    $adviser_id = (int) $request->query->get('adviser_id', 0);
+    $start = (string) $request->query->get('start', '');
+    $end = (string) $request->query->get('end', '');
+    $exclude_id = (int) $request->query->get('exclude_id', 0);
+
+    if ($adviser_id <= 0 || $start === '' || $end === '') {
       return new JsonResponse([]);
     }
 
-    // Validate strict date format.
-    $date_object = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
-    if (!$date_object || $date_object->format('Y-m-d') !== $date) {
-      return new JsonResponse([]);
-    }
-
-    $available = $this->wizardHelper->getAvailableHalfHourSlots($adviser_id, $date, $exclude_id);
-    $booked = $this->wizardHelper->getBookedTimesForDate($adviser_id, $date, $exclude_id);
-
+    $booked = $this->wizardHelper->getBookedTimesForDateRange($adviser_id, substr($start, 0, 10), substr($end, 0, 10), $exclude_id);
+    
     $slots = [];
-
-    foreach ($available as $time) {
-      $slots[] = [
-        'start' => $date . 'T' . $time . ':00',
-        'end' => $date . 'T' . $this->addThirtyMinutes($time) . ':00',
-        'allDay' => FALSE,
-        'available' => TRUE,
-      ];
-    }
-
-    foreach ($booked as $time) {
+    foreach ($booked as $datetime) {
+      $date = substr($datetime, 0, 10);
+      $time = substr($datetime, 11, 5);
       $slots[] = [
         'start' => $date . 'T' . $time . ':00',
         'end' => $date . 'T' . $this->addThirtyMinutes($time) . ':00',
@@ -57,9 +64,7 @@ final class AppointmentSlotsController extends ControllerBase {
         'available' => FALSE,
       ];
     }
-
-    usort($slots, static fn(array $a, array $b): int => strcmp((string) $a['start'], (string) $b['start']));
-
+    
     return new JsonResponse($slots);
   }
 

@@ -54,10 +54,18 @@ entity.appointment.settings:
   requirements:
     _permission: 'administer appointment'
 
-appointment.slots:
-  path: '/appointment/slots'
+appointment.check_slot:
+  path: '/appointment/check-slot'
   defaults:
-    _controller: '\Drupal\appointment\Controller\AppointmentSlotsController::getSlots'
-    _title: 'Slots'
+    _controller: '\Drupal\appointment\Controller\AppointmentSlotsController::checkSlot'
+    _title: 'Check Slot'
+  requirements:
+    _permission: 'access content'
+
+appointment.booked_slots:
+  path: '/appointment/booked-slots'
+  defaults:
+    _controller: '\Drupal\appointment\Controller\AppointmentSlotsController::getBookedSlots'
+    _title: 'Booked Slots'
   requirements:
     _permission: 'access content'
