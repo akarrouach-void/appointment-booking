@@ -20,13 +20,82 @@ drush en appointment -y
 drush cr
 ```
 
+## Uninstall
+
+The module ships with an uninstall validator (`AppointmentUninstallValidator`) that automatically deletes all appointment and agency content before Drupal's content check runs. This means you can uninstall cleanly without manually removing content first.
+
+```bash
+drush pmu appointment -y
+drush cr
+```
+
+On uninstall the module also cleans up:
+
+- All `appointment` entities
+- All `agency` entities
+- Private tempstore data for `appointment_booking` and `appointment_management`
+- Flood entries for `appointment.lookup`
+- All module-owned configuration (roles, fields, profile type, taxonomy vocabulary)
+
+## Reinstall
+
+Because profile-related configs are placed in `config/optional`, the module can be reinstalled on any site regardless of whether the `profile` module was already installed beforehand. Configs that already exist are silently skipped rather than throwing a `PreExistingConfigException`.
+
+```bash
+drush pmu appointment -y
+drush cr
+drush en appointment -y
+drush cr
+```
+
+## Update and Refresh
+
+```bash
+drush updb -y
+drush cr
+```
+
+The module includes `appointment_update_9001()` to install missing entity tables if needed.
+
+---
+
+## Config Directory Structure
+
+```
+config/
+├── install/     ← configs owned exclusively by this module (agency entity, field storage)
+│   ├── core.entity_form_display.agency.agency.default.yml
+│   ├── core.entity_view_display.agency.agency.default.yml
+│   ├── field.field.agency.agency.field_operating_hours.yml
+│   ├── field.storage.agency.field_operating_hours.yml
+│   ├── system.action.agency_delete_action.yml
+│   ├── system.action.agency_save_action.yml
+│   ├── system.action.appointment_delete_action.yml
+│   └── system.action.appointment_save_action.yml
+└── optional/    ← configs that may already exist (profile fields, role, vocabulary)
+    ├── core.entity_form_display.profile.adviser.default.yml
+    ├── core.entity_view_display.profile.adviser.default.yml
+    ├── field.field.profile.adviser.field_agency.yml
+    ├── field.field.profile.adviser.field_specializations.yml
+    ├── field.field.profile.adviser.field_working_hours.yml
+    ├── field.storage.profile.field_agency.yml
+    ├── field.storage.profile.field_specializations.yml
+    ├── field.storage.profile.field_working_hours.yml
+    ├── profile.type.adviser.yml
+    ├── system.action.user_add_role_action.adviser.yml
+    ├── system.action.user_remove_role_action.adviser.yml
+    ├── taxonomy.vocabulary.appointment_type.yml
+    ├── user.role.adviser.yml
+    └── views.view.appointments_admin.yml
+```
+
 ---
 
 ## Taxonomy — Appointment Type
 
 Created a taxonomy vocabulary called `appointment_type` through the backoffice at `Structure → Taxonomy → Add Vocabulary`. This vocabulary serves two purposes: it categorises appointments by type, and it is used as the specializations field on the Adviser profile to match users with the right adviser during booking.
 
-The vocabulary ships with the module via `config/install/taxonomy.vocabulary.appointment_type.yml`. Terms are not shipped — they are created by the site administrator.
+The vocabulary ships with the module via `config/optional/taxonomy.vocabulary.appointment_type.yml`. Terms are not shipped — they are created by the site administrator.
 
 ![Appointment Type terms](images/appointment_type.png)
 
@@ -39,9 +108,9 @@ Created a custom role called `Adviser` at `People → Roles → Add Role`. This 
 The role ships with the module via:
 
 ```
-config/install/user.role.adviser.yml
-config/install/system.action.user_add_role_action.adviser.yml
-config/install/system.action.user_remove_role_action.adviser.yml
+config/optional/user.role.adviser.yml
+config/optional/system.action.user_add_role_action.adviser.yml
+config/optional/system.action.user_remove_role_action.adviser.yml
 ```
 
 ---
@@ -58,11 +127,7 @@ drush en profile -y
 The profile type ships with the module via:
 
 ```
-config/install/profile.type.adviser.yml
-config/install/system.action.profile_delete_action.yml
-config/install/system.action.profile_publish_action.yml
-config/install/system.action.profile_unpublish_action.yml
-config/install/views.view.profiles.yml
+config/optional/profile.type.adviser.yml
 ```
 
 ![Adviser profile type restricted to Adviser role](images/adviser_profile.png)
@@ -70,6 +135,10 @@ config/install/views.view.profiles.yml
 ### Specializations field
 
 An entity reference field pointing to the `appointment_type` taxonomy with unlimited values. An adviser can cover multiple appointment types. When a user books an appointment, the system filters advisers by both agency and specialization to show only the relevant advisers.
+
+### Agency field
+
+An entity reference field pointing to the `agency` entity. Each adviser must be assigned to one agency. This field is required and is used by the booking wizard to filter advisers by the selected agency.
 
 ### Working Hours field
 
@@ -191,6 +260,83 @@ On confirmation the system:
 - Redirects to the appointment management page
 
 **Double-booking prevention** — when a customer selects a date, the system queries all non-cancelled appointments for that adviser on that day and removes those time slots from the available options.
+
+### Calendar Integration (FullCalendar)
+
+Step 4 of the booking wizard uses [FullCalendar v6](https://fullcalendar.io/) to display available and booked time slots interactively.
+
+The library is loaded via CDN, declared in `appointment.libraries.yml`:
+
+```yaml
+fullcalendar:
+  js:
+    https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js:
+      type: external
+      minified: true
+
+booking_calendar:
+  version: 1.x
+  js:
+    js/appointment-calendar.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - appointment/fullcalendar
+```
+
+The calendar is attached only on step 4:
+
+```php
+if ($step === 4) {
+  $form['#attached']['library'][] = 'appointment/booking_calendar';
+}
+```
+
+The calendar container is rendered with data attributes that the JavaScript reads to fetch slots:
+
+```php
+$container['calendar_wrapper'] = [
+  '#type' => 'container',
+  '#attributes' => [
+    'id' => 'appointment-calendar',
+    'data-adviser' => $adviser_id,
+    'data-slots-url' => '/appointment/slots',
+    'data-exclude-id' => 0,
+  ],
+];
+```
+
+#### Slots Endpoint
+
+Available and booked slots are served by `AppointmentSlotsController` at `/appointment/slots`:
+
+```
+GET /appointment/slots?adviser_id=5&date=2026-03-24&exclude_id=0
+```
+
+Response format:
+
+```json
+[
+	{
+		"start": "2026-03-24T09:00:00",
+		"end": "2026-03-24T09:30:00",
+		"allDay": false,
+		"available": true
+	},
+	{
+		"start": "2026-03-24T10:00:00",
+		"end": "2026-03-24T10:30:00",
+		"allDay": false,
+		"available": false
+	}
+]
+```
+
+- `available: true` — slot is free, shown in green, clickable
+- `available: false` — slot is already booked, shown in red, not clickable
+
+When a customer clicks a slot, the hidden `appointment_date` field is populated with the ISO datetime value and passed to the form on the next step.
 
 ---
 
@@ -344,14 +490,4 @@ Assign permissions at `/admin/people/permissions`.
 | `/gerer-rendez-vous/actions`   | Modify or cancel a verified appointment  |
 | `/gerer-rendez-vous/modifier`  | Multi-step appointment modification form |
 | `/gerer-rendez-vous/supprimer` | Appointment cancellation form            |
-
----
-
-## Update and Refresh
-
-```bash
-drush updb -y
-drush cr
-```
-
-The module includes `appointment_update_9001()` to install missing entity tables if needed.
+| `/appointment/slots`           | JSON endpoint for FullCalendar slots     |
