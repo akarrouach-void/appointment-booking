@@ -190,20 +190,30 @@ function appointment_mail($key, &$message, $params): void {
   $adviser_label = $adviser ? $adviser->label() : '-';
   $type_label = $type ? $type->label() : '-';
 
+  $config = \Drupal::config('appointment.settings');
+
+  $tokens = [
+    '@reference' => $reference,
+    '@date' => $date_label,
+    '@agency' => $agency_label,
+    '@type' => $type_label,
+    '@adviser' => $adviser_label,
+  ];
+
   switch ($key) {
     case 'created':
-      $message['subject'] = $translator->translate('Your appointment @reference has been created', ['@reference' => $reference]);
-      $message['body'][] = $translator->translate('Your appointment has been created successfully. Keep your reference to modify or cancel it later.');
+      $message['subject'] = $translator->translate((string) ($config->get('email_subject_created') ?: 'Your appointment @reference has been created'), $tokens);
+      $message['body'][] = $translator->translate((string) ($config->get('email_body_created') ?: 'Your appointment has been created successfully. Keep your reference to modify or cancel it later.'), $tokens);
       break;
 
     case 'modified':
-      $message['subject'] = $translator->translate('Your appointment @reference has been modified', ['@reference' => $reference]);
-      $message['body'][] = $translator->translate('Your appointment has been updated successfully.');
+      $message['subject'] = $translator->translate((string) ($config->get('email_subject_modified') ?: 'Your appointment @reference has been modified'), $tokens);
+      $message['body'][] = $translator->translate((string) ($config->get('email_body_modified') ?: 'Your appointment has been updated successfully.'), $tokens);
       break;
 
     case 'cancelled':
-      $message['subject'] = $translator->translate('Your appointment @reference has been cancelled', ['@reference' => $reference]);
-      $message['body'][] = $translator->translate('Your appointment has been cancelled successfully.');
+      $message['subject'] = $translator->translate((string) ($config->get('email_subject_cancelled') ?: 'Your appointment @reference has been cancelled'), $tokens);
+      $message['body'][] = $translator->translate((string) ($config->get('email_body_cancelled') ?: 'Your appointment has been cancelled successfully.'), $tokens);
       break;
 
     default:
