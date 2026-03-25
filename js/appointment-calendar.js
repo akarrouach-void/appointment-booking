@@ -117,9 +117,15 @@
 						'appointment-selected-date',
 					);
 
+					var today = new Date();
+					today.setHours(0, 0, 0, 0);
+
 					var cal = new FullCalendar.Calendar(calEl, {
 						initialView: 'timeGridWeek',
 						locale: 'fr',
+						validRange: {
+							start: today
+						},
 						slotMinTime: '08:00:00',
 						slotMaxTime: '18:00:00',
 						slotDuration: '00:30:00',
@@ -139,6 +145,13 @@
 						// On empty cell click — create a blue selection by checking with the backend
 						dateClick: function (info) {
 							var clickedDate = info.date;
+
+							if (clickedDate < new Date()) {
+								clearError();
+								getErrorEl(calEl).textContent = Drupal.t('You cannot select a past date or time.');
+								return;
+							}
+
 							var endDateTime = new Date(clickedDate.getTime() + 30*60*1000);
 							var datetimeStr = toLocalIso(clickedDate);
 							
