@@ -259,7 +259,7 @@ On confirmation the system:
 - Sends a confirmation email to the customer
 - Redirects to the appointment management page
 
-**Double-booking prevention** — when a customer selects a date, the system queries all non-cancelled appointments for that adviser on that day and removes those time slots from the available options.
+**Double-booking prevention** — when a customer selects a date, the system queries all non-cancelled appointments for that adviser on that day and removes those time slots from the available options. Furthermore, the calendar prevents navigation to past dates and automatically blocks booking any time slots that have already passed on the current day.
 
 ### Calendar Integration (FullCalendar)
 
@@ -300,43 +300,47 @@ $container['calendar_wrapper'] = [
   '#attributes' => [
     'id' => 'appointment-calendar',
     'data-adviser' => $adviser_id,
-    'data-slots-url' => '/appointment/slots',
     'data-exclude-id' => 0,
   ],
 ];
 ```
 
-#### Slots Endpoint
+#### Slots Endpoints
 
-Available and booked slots are served by `AppointmentSlotsController` at `/appointment/slots`:
+Available and booked slots are served by `AppointmentSlotsController` via two dedicated endpoints:
 
+**1. Fetching Booked Slots:**
 ```
-GET /appointment/slots?adviser_id=5&date=2026-03-24&exclude_id=0
+GET /appointment/booked-slots?adviser_id=5&start=2026-03-24&end=2026-03-31&exclude_id=0
 ```
-
-Response format:
-
+This returns an array of visually blocked slots to the calendar:
 ```json
 [
-	{
-		"start": "2026-03-24T09:00:00",
-		"end": "2026-03-24T09:30:00",
-		"allDay": false,
-		"available": true
-	},
 	{
 		"start": "2026-03-24T10:00:00",
 		"end": "2026-03-24T10:30:00",
 		"allDay": false,
-		"available": false
+		"available": false,
+        "type": "slot"
 	}
 ]
 ```
 
-- `available: true` — slot is free, shown in green, clickable
-- `available: false` — slot is already booked, shown in red, not clickable
+**2. Checking a Specific Slot Validity (On Click):**
+```
+GET /appointment/check-slot?adviser_id=5&datetime=2026-03-24T09:00:00&exclude_id=0
+```
+Response format confirms if a slot is actually bookable:
+```json
+{
+  "available": true
+}
+```
 
-When a customer clicks a slot, the hidden `appointment_date` field is populated with the ISO datetime value and passed to the form on the next step.
+- `available: true` — slot is free, shown in blue as selected, clickable
+- `available: false` — slot is outside working hours, in the past, or already booked, shown with an error message
+
+When a customer clicks a valid slot, the hidden `appointment_date` field is populated with the ISO datetime value and passed to the form on the next step.
 
 ---
 
@@ -490,4 +494,5 @@ Assign permissions at `/admin/people/permissions`.
 | `/gerer-rendez-vous/actions`   | Modify or cancel a verified appointment  |
 | `/gerer-rendez-vous/modifier`  | Multi-step appointment modification form |
 | `/gerer-rendez-vous/supprimer` | Appointment cancellation form            |
-| `/appointment/slots`           | JSON endpoint for FullCalendar slots     |
+| `/appointment/booked-slots`    | JSON endpoint for rendering booked slots |
+| `/appointment/check-slot`      | JSON endpoint for validating slot clicks |
